@@ -4,9 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "./node_modules/.bin/tsc && node --inspect dist/index.js",
-    "go": "node --inspect dist/index.js",
-    "brk": "node --inspect-brk dist/index.js"
+    "buildProtocols": "node buildProtocols"
   },
   "keywords": [],
   "author": "",

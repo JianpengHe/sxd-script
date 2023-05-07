@@ -1,5 +1,9 @@
 /node_modules
 /build
 /dist
+/src/protocols
+/src/*.js
+/src/*.d.ts
 npm-debug.log*
 *.map
+*.tsbuildinfo
