@@ -1,5 +1,5 @@
 const fs = require("fs");
-const Mod = JSON.parse(String(fs.readFileSync("../sxd-protocols/Mod.json")));
+const Mod = JSON.parse(String(fs.readFileSync(`${__dirname}/../sxd-protocols/Mod.json`)));
 const type = ["Boolean", "Byte", "UByte", "Double", "Long", "Float", "Int", "Short", "String"];
 const buildIProtocols = item => (Array.isArray(item) ? item.map(buildIProtocols) : "I" + type[item]);
 
@@ -35,5 +35,5 @@ for (const k in Mod) {
     output.push(`}`);
     output.push(``);
   }
-  fs.writeFileSync(`src/protocols/${m_fn}.ts`, `import { Connect, IBoolean, IByte, IUByte, IDouble, ILong, IFloat, IInt, IShort, IString } from "../main";\n/*` + `* ${m_name} */\nexport namespace ${m_fn} {\n${output.join("\n")}}`);
+  fs.writeFileSync(`${__dirname}/src/protocols/${m_fn}.ts`, `import { Connect, IBoolean, IByte, IUByte, IDouble, ILong, IFloat, IInt, IShort, IString } from "../main";\n/*` + `* ${m_name} */\nexport namespace ${m_fn} {\n${output.join("\n")}}`);
 }

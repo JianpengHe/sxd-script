@@ -101,6 +101,37 @@ export const writeProtocolBuffer = (data: any, rules: any) => {
   return buf.buffer;
 };
 
+export type IDataPackage = {
+  dataLen: number;
+  modId: number;
+  funId: number;
+  dataBuffer: Buffer;
+};
+
+export const getHeadBuffer = (buffer: Buffer): IDataPackage => ({
+  dataLen: buffer.readUInt32BE(),
+  dataBuffer: Buffer.alloc(0),
+  modId: buffer.readUInt16BE(4),
+  funId: buffer.readUInt16BE(6),
+});
+
+export const formatDataBuffer = async (dataPackage: IDataPackage, buffer: Buffer) => {
+  if (dataPackage.modId === 30876) {
+    buffer = await new Promise(r =>
+      zlib.inflateRaw(buffer, (err, d) => {
+        if (err) {
+          throw err;
+        }
+        r(d);
+      })
+    );
+    dataPackage.modId = buffer.readUInt16BE();
+    dataPackage.funId = buffer.readUInt16BE(2);
+    buffer = buffer.subarray(4);
+  }
+  dataPackage.dataBuffer = buffer;
+};
+
 export class Connect {
   public readonly socket: net.Socket;
   private recvStream: RecvStream;
@@ -123,6 +154,7 @@ export class Connect {
         return;
       }
       this.listeners.set(this.getListenerKey(modId, funId), resolve);
+      console.log(this.listeners);
       this.socket.write(reqBuffer.buffer);
     });
     return readProtocolBuffer(resBuffer, resRules);
@@ -130,21 +162,15 @@ export class Connect {
 
   private recv = () =>
     this.recvStream.readBuffer(8, buffer => {
-      let modId = buffer.readUInt16BE(4);
-      let funId = buffer.readUInt16BE(6);
-      this.recvStream.readBuffer(buffer.readUInt32BE(), buffer => {
-        if (modId === 30876) {
-          buffer = zlib.inflateRawSync(buffer);
-          modId = buffer.readUInt16BE();
-          funId = buffer.readUInt16BE(2);
-          buffer = buffer.subarray(4);
-        }
-
+      const dataPackage = getHeadBuffer(buffer);
+      this.recvStream.readBuffer(dataPackage.dataLen, async buffer => {
+        await formatDataBuffer(dataPackage, buffer);
+        const { dataBuffer, modId, funId } = dataPackage;
         const callback = this.listeners.get(this.getListenerKey(modId, funId));
         if (!callback) {
           console.log("未注册监听器", modId, funId);
         } else {
-          callback(buffer);
+          callback(dataBuffer);
           this.listeners.delete(this.getListenerKey(modId, funId));
         }
         this.recv();
