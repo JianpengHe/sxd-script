@@ -2,8 +2,11 @@
 /build
 /dist
 /src/protocols
-/src/*.js
+*.js
 /src/*.d.ts
 npm-debug.log*
 *.map
 *.tsbuildinfo
+*.secret.ts
+.cookie
+/game/Chrome

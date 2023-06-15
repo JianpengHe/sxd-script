@@ -2,7 +2,7 @@ import * as http from "http";
 import * as fs from "fs";
 const request = (url: string, opt: http.RequestOptions = {}): Promise<{ headers: http.IncomingHttpHeaders; body: string }> =>
   new Promise(resolve =>
-    http.request(url, opt, res => {
+    http.get(url, opt, res => {
       const body: Buffer[] = [];
       res.on("data", chuck => body.push(chuck));
       res.on("end", () => resolve({ headers: res.headers, body: String(Buffer.concat(body)) }));
@@ -29,9 +29,9 @@ export const getWebGameReqBody = async (err = 0): Promise<string> => {
   return await getWebGameReqBody(err + 1);
 };
 
-export const getWebGameParam = async () => {
+export const getWebGameParam = async (reqBody?: string) => {
   const param: { [x: string]: string } = {};
-  for (const [k, v] of new URLSearchParams((((((await getWebGameReqBody()) || "").match(/flashVars([^;]+);/i) || [])[1] || "").match(/(?<=").*?(?=")/g) || []).join("")).entries()) {
+  for (const [k, v] of new URLSearchParams(((((reqBody || (await getWebGameReqBody()) || "").match(/flashVars([^;]+);/i) || [])[1] || "").match(/(?<=").*?(?=")/g) || []).join("")).entries()) {
     param[k] = v;
   }
   return param;

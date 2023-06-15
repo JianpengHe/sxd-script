@@ -2,7 +2,7 @@
   // 指定需要编译文件 否则默认当前目录下除了exclude之外的所有.ts, .d.ts,.tsx 文件
   //"include": ["./"],
   // 不编译某些文件
-  "exclude": ["*.js", "*.d.ts", "node_modules"],
+  "exclude": ["*.js", "*.d.ts", "node_modules","game/Chrome"],
   "compilerOptions": {
     // 只编译修改过的文件,这个时候会生成tsconfig.tsbuildinfo,下次编译的时候会进行对比只编译修改过的文件
     "incremental": true,
