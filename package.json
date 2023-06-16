@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "buildProtocols": "node buildProtocols"
+    "buildProtocols": "node buildProtocols",
+    "start_game": "cd game&node start"
   },
   "keywords": [],
   "author": "",
