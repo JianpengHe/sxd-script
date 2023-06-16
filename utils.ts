@@ -105,33 +105,54 @@ export type IDataPackage = {
   dataLen: number;
   modId: number;
   funId: number;
+  /** 原始头部 */
   headBuffer: Buffer;
+  /** 原始数据 */
   dataBuffer: Buffer;
+  /** 解压后的数据 */
+  buffer: Buffer;
 };
 
 export const getHeadBuffer = (buffer: Buffer): IDataPackage => ({
-  dataLen: buffer.readUInt32BE(),
+  dataLen: buffer.readInt32BE(),
   headBuffer: buffer,
   dataBuffer: Buffer.alloc(0),
-  modId: buffer.readUInt16BE(4),
-  funId: buffer.readUInt16BE(6),
+  buffer: Buffer.alloc(0),
+  modId: buffer.readInt16BE(4),
+  funId: buffer.readInt16BE(6),
 });
 
 export const formatDataBuffer = async (dataPackage: IDataPackage, buffer: Buffer) => {
-  if (dataPackage.modId === 30876) {
-    buffer = await new Promise(r =>
-      zlib.inflateRaw(buffer, (err, d) => {
-        if (err) {
-          throw err;
-        }
-        r(d);
-      })
-    );
-    dataPackage.modId = buffer.readUInt16BE();
-    dataPackage.funId = buffer.readUInt16BE(2);
-    buffer = buffer.subarray(4);
-  }
   dataPackage.dataBuffer = buffer;
+  if (dataPackage.modId === 30876) {
+    buffer = Buffer.concat([dataPackage.headBuffer.subarray(6), buffer]);
+    // console.log(dataPackage, buffer);
+    buffer = zlib.inflateRawSync(buffer);
+    /** 未解之谜 */
+    //  ||
+    // (await new Promise(r =>
+    //   zlib.inflateRaw(buffer, (err, d) => {
+    //     if (err) {
+    //       console.log(err);
+    //       r(Buffer.alloc(0));
+    //       //throw err;
+    //     }
+    //     r(d);
+    //   })
+    // ));
+    // console.log(buffer, dataPackage);
+    if (buffer.length >= 4) {
+      dataPackage.modId = buffer.readUInt16BE();
+      dataPackage.funId = buffer.readUInt16BE(2);
+      buffer = buffer.subarray(4);
+    } else {
+      console.log("????", buffer);
+      dataPackage.modId = -1;
+      dataPackage.funId = -1;
+      buffer = Buffer.alloc(0);
+    }
+  }
+  dataPackage.buffer = buffer;
 };
 
 let Mod_json = {};

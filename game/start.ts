@@ -1,10 +1,10 @@
 import { downloadChrome } from "./downloadChrome";
 import { getWebGameParam, getWebGameReqBody } from "../webGameLoginInfo.secret";
 import { SocketAggregation } from "./SocketAggregation";
+import { ProtocolProxy } from "./ProtocolProxy";
 
 import * as fs from "fs";
 import * as http from "http";
-import * as net from "net";
 import * as path from "path";
 import * as child_process from "child_process";
 
@@ -35,7 +35,8 @@ const hasFile = (path: string) =>
     () => {}
   );
   const socketAggregation = new SocketAggregation(PORT);
-  socketAggregation.onConnect = (sock, info) => {
+
+  socketAggregation.onConnect((sock, info) => {
     if (info.port === 80) {
       httpServer.emit("connection", sock);
       return;
@@ -43,10 +44,8 @@ const hasFile = (path: string) =>
 
     console.log("连接", info.host, info.port);
     // sock.on("data", a => console.log(a, a.length));
-    const remoteSock = net.connect(info);
-    remoteSock.pipe(sock);
-    sock.pipe(remoteSock);
-  };
+    new ProtocolProxy(info, sock, socketAggregation);
+  });
 
   const httpServer = http.createServer(async (req, res) => {
     if (req.url === "/") {
