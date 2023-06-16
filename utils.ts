@@ -13,7 +13,10 @@ export type IInt = number;
 export type IShort = number;
 export type IString = string;
 
-export const readProtocolBuffer = (buffer: Buffer, rules: any) => {
+export type IProtocolRules = any[];
+export type IProtocolData = any[];
+
+export const readProtocolBuffer = (buffer: Buffer, rules: IProtocolRules): IProtocolData => {
   const buf = new Buf(buffer);
   const readItem = rule => {
     if (Array.isArray(rule)) {
@@ -47,7 +50,7 @@ export const readProtocolBuffer = (buffer: Buffer, rules: any) => {
   };
   return rules.map(readItem);
 };
-export const writeProtocolBuffer = (data: any, rules: any) => {
+export const writeProtocolBuffer = (data: any, rules: IProtocolData) => {
   const buf = new Buf();
   const writeItem = (data, rule, b = true) => {
     if (Array.isArray(data)) {

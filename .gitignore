@@ -10,3 +10,4 @@ npm-debug.log*
 *.secret.ts
 .cookie
 /game/Chrome
+样本
