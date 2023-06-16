@@ -10,25 +10,33 @@ const log = new Log();
 /** 自动找到服务器，自动走代理 */
 const isAutoProxyServer = true;
 
+/** 服务器列表 */
+const Servers: ProtocolProxy[] = [];
+
+const consoleLogColor = (protocolProxy: ProtocolProxy, isUp: boolean) => `${isUp ? `\x1B[41m↑\x1B[0m` : "↓"} \x1B[${32 + ((protocolProxy.serverId + 5) % 6)}m${protocolProxy.info.remark}\x1B[0m`;
+
 export class ProtocolProxy {
   public readonly localSock: net.Socket;
   public readonly remoteSock: net.Socket;
   public readonly info: ISocketAggregationInfo;
   public readonly socketAggregation: SocketAggregation;
   public readonly PORT: number;
+  public readonly serverId: number;
   constructor(info: ISocketAggregationInfo, localSock: net.Socket, socketAggregation: SocketAggregation, PORT: number) {
     this.localSock = localSock;
     this.remoteSock = net.connect(info);
     this.info = info;
     this.socketAggregation = socketAggregation;
     this.PORT = PORT;
+    this.serverId = Servers.length;
+    Servers.push(this);
     // this.remoteSock.pipe(this.localSock);
     // this.localSock.pipe(this.remoteSock);
 
     new ProtocolParse(this.localSock).onData(async ({ headBuffer, dataBuffer, buffer, modId, funId }) => {
       const { Mname, name, req } = await getModJson(modId, funId);
       const protocolData = readProtocolBuffer(buffer, req);
-      console.log("↑", info.remark, "\t", modId, Mname, "\t", funId, name, protocolData);
+      console.log(consoleLogColor(this, true), "\t", modId, Mname, "\t", funId, name, protocolData);
       log.up(info.remark, protocolData, modId, funId);
       this.remoteSock.write(Buffer.concat([headBuffer, dataBuffer]));
     });
@@ -36,7 +44,7 @@ export class ProtocolProxy {
     new ProtocolParse(this.remoteSock).onData(async ({ headBuffer, dataBuffer, buffer, modId, funId }) => {
       const { Mname, Mfn, name, res } = await getModJson(modId, funId);
       const protocolData = readProtocolBuffer(buffer, res);
-      console.log("↓", info.remark, "\t", modId, Mname, "\t", funId, name);
+      console.log(consoleLogColor(this, false), "\t", modId, Mname, "\t", funId, name);
       log.down(info.remark, protocolData, modId, funId);
 
       if (isAutoProxyServer) {
