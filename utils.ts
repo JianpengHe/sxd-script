@@ -114,12 +114,12 @@ export type IDataPackage = {
 };
 
 export const getHeadBuffer = (buffer: Buffer): IDataPackage => ({
-  dataLen: buffer.readInt32BE(),
+  dataLen: buffer.readUInt32BE(),
   headBuffer: buffer,
   dataBuffer: Buffer.alloc(0),
   buffer: Buffer.alloc(0),
-  modId: buffer.readInt16BE(4),
-  funId: buffer.readInt16BE(6),
+  modId: buffer.readUInt16BE(4),
+  funId: buffer.readUInt16BE(6),
 });
 
 export const formatDataBuffer = async (dataPackage: IDataPackage, buffer: Buffer) => {
@@ -129,9 +129,10 @@ export const formatDataBuffer = async (dataPackage: IDataPackage, buffer: Buffer
     // console.log(dataPackage, buffer);
     buffer = zlib.inflateRawSync(buffer);
     /** 未解之谜 */
-    //  ||
-    // (await new Promise(r =>
-    //   zlib.inflateRaw(buffer, (err, d) => {
+    // const bufCopy = Buffer.allocUnsafe(buffer.length);
+    // buffer.copy(bufCopy);
+    // buffer = await new Promise(r =>
+    //   zlib.inflateRaw(bufCopy, (err, d) => {
     //     if (err) {
     //       console.log(err);
     //       r(Buffer.alloc(0));
@@ -139,7 +140,7 @@ export const formatDataBuffer = async (dataPackage: IDataPackage, buffer: Buffer
     //     }
     //     r(d);
     //   })
-    // ));
+    // );
     // console.log(buffer, dataPackage);
     if (buffer.length >= 4) {
       dataPackage.modId = buffer.readUInt16BE();
