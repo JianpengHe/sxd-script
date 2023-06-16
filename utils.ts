@@ -50,7 +50,7 @@ export const readProtocolBuffer = (buffer: Buffer, rules: IProtocolRules): IProt
   };
   return rules.map(readItem);
 };
-export const writeProtocolBuffer = (data: any, rules: IProtocolData) => {
+export const writeProtocolBuffer = (data: IProtocolData, rules: IProtocolRules) => {
   const buf = new Buf();
   const writeItem = (data, rule, b = true) => {
     if (Array.isArray(data)) {

@@ -9,7 +9,8 @@ import * as path from "path";
 import * as child_process from "child_process";
 
 const PATH = path.resolve(__dirname, "Chrome");
-const PORT = 47670;
+/** 暂时不支持超过32767的端口 */
+const PORT = 32618;
 
 const hasFile = (path: string) =>
   new Promise(r =>
@@ -44,7 +45,7 @@ const hasFile = (path: string) =>
 
     console.log("连接", info.host, info.port);
     // sock.on("data", a => console.log(a, a.length));
-    new ProtocolProxy(info, sock, socketAggregation);
+    new ProtocolProxy(info, sock, socketAggregation, PORT);
   });
 
   const httpServer = http.createServer(async (req, res) => {
