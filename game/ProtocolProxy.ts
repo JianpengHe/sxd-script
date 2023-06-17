@@ -11,7 +11,7 @@ const log = new Log();
 const isAutoProxyServer = true;
 
 /** 服务器列表 */
-const Servers: ProtocolProxy[] = [];
+const Servers: Array<ProtocolProxy | undefined> = [];
 
 const consoleLogColor = (protocolProxy: ProtocolProxy, isUp: boolean) => `${isUp ? `\x1B[41m↑\x1B[0m` : "↓"} \x1B[${32 + ((protocolProxy.serverId + 5) % 6)}m${protocolProxy.info.remark}\x1B[0m`;
 
@@ -21,17 +21,39 @@ export class ProtocolProxy {
   public readonly info: ISocketAggregationInfo;
   public readonly socketAggregation: SocketAggregation;
   public readonly PORT: number;
-  public readonly serverId: number;
+  public readonly serverId: number = 0;
   constructor(info: ISocketAggregationInfo, localSock: net.Socket, socketAggregation: SocketAggregation, PORT: number) {
     this.localSock = localSock;
     this.remoteSock = net.connect(info);
     this.info = info;
     this.socketAggregation = socketAggregation;
     this.PORT = PORT;
-    this.serverId = Servers.length;
-    Servers.push(this);
     // this.remoteSock.pipe(this.localSock);
     // this.localSock.pipe(this.remoteSock);
+
+    /** 断开服务器 */
+    this.localSock.once("close", () => {
+      console.log(consoleLogColor(this, true), "\t断开服务器");
+      this.remoteSock.end();
+    });
+    this.remoteSock.once("close", () => {
+      console.log(consoleLogColor(this, false), "\t断开服务器");
+      this.localSock.end();
+    });
+
+    /** 找一个空闲的位置 */
+    for (let index = 0; index <= Servers.length; index++) {
+      if (!Servers[index]) {
+        this.serverId = index;
+        Servers[index] = this;
+        this.remoteSock.once("close", () => {
+          delete Servers[index];
+          console.log("服务器数量", Servers.filter(Boolean).length);
+        });
+        console.log("服务器数量", Servers.filter(Boolean).length);
+        break;
+      }
+    }
 
     new ProtocolParse(this.localSock).onData(async ({ headBuffer, dataBuffer, buffer, modId, funId }) => {
       const { Mname, name, req } = await getModJson(modId, funId);

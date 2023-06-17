@@ -33,7 +33,7 @@ export class SocketAggregation {
 
       /** 处理数据包body，获得完整dataPackage */
       protocolParse.onData(async ({ headBuffer, dataBuffer, modId, funId }, buffer) => {
-        console.log(modId, funId, headBuffer, dataBuffer);
+        // console.log(modId, funId, headBuffer, dataBuffer);
         /** 截获浏览器发送给服务器的登录信息 */
         for (const item of readProtocolBuffer(dataBuffer, (await getModJson(modId, funId)).req)) {
           let info: ISocketAggregationInfo | undefined;
