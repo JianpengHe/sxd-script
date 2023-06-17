@@ -13,7 +13,18 @@ const isAutoProxyServer = true;
 /** 服务器列表 */
 const Servers: Array<ProtocolProxy | undefined> = [];
 
-const consoleLogColor = (protocolProxy: ProtocolProxy, isUp: boolean) => `${isUp ? `\x1B[41m↑\x1B[0m` : "↓"} \x1B[${32 + ((protocolProxy.serverId + 5) % 6)}m${protocolProxy.info.remark}\x1B[0m`;
+const consoleLogColor = (protocolProxy: ProtocolProxy, isUp: boolean) =>
+  `${isUp ? `\x1B[41m↑\x1B[0m` : "↓"} \x1B[${32 + ((protocolProxy.serverId + 5) % 6)}m${protocolProxy.info.remark.padEnd(16, " ")}\x1B[0m`;
+
+const consoleLogText = <T>(str: T, maxLen: number): [T, string] => [
+  str,
+  " ".repeat(
+    Math.max(
+      0,
+      [...String(str)].reduce((total, ch) => total - (Buffer.from(ch).length > 1 ? 2 : 1), maxLen)
+    )
+  ),
+];
 
 export class ProtocolProxy {
   public readonly localSock: net.Socket;
@@ -58,7 +69,7 @@ export class ProtocolProxy {
     new ProtocolParse(this.localSock).onData(async ({ headBuffer, dataBuffer, buffer, modId, funId }) => {
       const { Mname, name, req } = await getModJson(modId, funId);
       const protocolData = readProtocolBuffer(buffer, req);
-      console.log(consoleLogColor(this, true), "\t", modId, Mname, "\t", funId, name, protocolData);
+      console.log(consoleLogColor(this, true), "\t", ...consoleLogText(modId, 3), ...consoleLogText(Mname, 16), "\t", ...consoleLogText(funId, 3), name, protocolData);
       log.up(info.remark, protocolData, modId, funId);
       this.remoteSock.write(Buffer.concat([headBuffer, dataBuffer]));
     });
@@ -66,7 +77,7 @@ export class ProtocolProxy {
     new ProtocolParse(this.remoteSock).onData(async ({ headBuffer, dataBuffer, buffer, modId, funId }) => {
       const { Mname, Mfn, name, res } = await getModJson(modId, funId);
       const protocolData = readProtocolBuffer(buffer, res);
-      console.log(consoleLogColor(this, false), "\t", modId, Mname, "\t", funId, name);
+      console.log(consoleLogColor(this, false), "\t", ...consoleLogText(modId, 3), ...consoleLogText(Mname, 16), "\t", ...consoleLogText(funId, 3), name);
       log.down(info.remark, protocolData, modId, funId);
 
       if (isAutoProxyServer) {
