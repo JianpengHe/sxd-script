@@ -67,17 +67,39 @@ export class ProtocolProxy {
     }
 
     new ProtocolParse(this.localSock).onData(async ({ headBuffer, dataBuffer, buffer, modId, funId }) => {
-      const { Mname, name, req } = await getModJson(modId, funId);
+      const { Mname, Mfn, name, fn, req } = await getModJson(modId, funId);
       const protocolData = readProtocolBuffer(buffer, req);
-      console.log(consoleLogColor(this, true), "\t", ...consoleLogText(modId, 3), ...consoleLogText(Mname, 16), "\t", ...consoleLogText(funId, 3), name, protocolData);
+      console.log(
+        consoleLogColor(this, true),
+        "\t",
+        ...consoleLogText(modId, 3),
+        ...consoleLogText(Mfn, 16),
+        ...consoleLogText(Mname, 16),
+        "\t",
+        ...consoleLogText(funId, 3),
+        ...consoleLogText(fn, 24),
+        name,
+        protocolData
+      );
       log.up(info.remark, protocolData, modId, funId);
       this.remoteSock.write(Buffer.concat([headBuffer, dataBuffer]));
     });
 
     new ProtocolParse(this.remoteSock).onData(async ({ headBuffer, dataBuffer, buffer, modId, funId }) => {
-      const { Mname, Mfn, name, res } = await getModJson(modId, funId);
+      const { Mname, Mfn, name, fn, res } = await getModJson(modId, funId);
       const protocolData = readProtocolBuffer(buffer, res);
-      console.log(consoleLogColor(this, false), "\t", ...consoleLogText(modId, 3), ...consoleLogText(Mname, 16), "\t", ...consoleLogText(funId, 3), name);
+      console.log(
+        consoleLogColor(this, false),
+        "\t",
+        ...consoleLogText(modId, 3),
+        ...consoleLogText(Mfn, 16),
+        ...consoleLogText(Mname, 16),
+        "\t",
+        ...consoleLogText(funId, 3),
+        ...consoleLogText(fn, 24),
+        name,
+        buffer.length
+      );
       log.down(info.remark, protocolData, modId, funId);
 
       if (isAutoProxyServer) {

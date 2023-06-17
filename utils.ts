@@ -1,6 +1,10 @@
 import * as zlib from "zlib";
 import * as fs from "fs";
+import * as path from "path";
 import { Buf } from "../tools/release/node/Buf";
+
+/** 样本文件储存位置，可以是任意位置，但建议使用git */
+export const logSavePath = path.resolve(__dirname, "../sxd-protocols/packet_samples/") + "/";
 
 const type = ["Boolean", "Byte", "UByte", "Double", "Long", "Float", "Int", "Short", "String"];
 export type IBoolean = boolean;

@@ -1,4 +1,4 @@
-import { IProtocolData, getModJson } from "../utils";
+import { IProtocolData, getModJson, logSavePath } from "../utils";
 
 import * as fs from "fs";
 import * as crypto from "crypto";
@@ -15,15 +15,13 @@ type ILog = {
   res: any[];
 };
 export class Log {
-  private logSavePath: string;
   private pool: Map<number, Map<number, ILog[]>> = new Map();
   private logMap: Map<string, ILog> = new Map();
   /** 某目录下存了多少文件 */
   private dirFilesCount: Map<string, number> = new Map();
   /** 定时器 */
   private timer: number = 0;
-  constructor(logSavePath = __dirname + "/../样本/") {
-    this.logSavePath = logSavePath;
+  constructor() {
     this.save();
   }
 
@@ -31,7 +29,7 @@ export class Log {
     for (const [hex, log] of this.logMap) {
       const { modId, funId } = log;
       const { Mname, Mfn, name, fn } = await getModJson(modId, funId);
-      const path = `${this.logSavePath}${modId}.${Mfn} ${Mname}/${funId}.${fn} ${name}/`;
+      const path = `${logSavePath}${modId}.${Mfn}/${funId}.${fn}/`;
       let fileCount = this.dirFilesCount.get(path);
       if (!fileCount) {
         try {
