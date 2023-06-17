@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "buildProtocols": "node buildProtocols",
+    "resolve_PacketSamples_merge_conflict":"node resolve_PacketSamples_merge_conflict",
     "start_game": "cd game&node start"
   },
   "keywords": [],

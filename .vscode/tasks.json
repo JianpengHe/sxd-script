@@ -11,9 +11,30 @@
       "type": "typescript",
       "tsconfig": "tsconfig.json",
       "option": "watch",
-      "problemMatcher": ["$tsc-watch"],
+      "problemMatcher": [
+        "$tsc-watch"
+      ],
       "group": "build",
       "label": "tsc: 监视 - tsconfig.json"
+    },
+    {
+      "type": "npm",
+      "script": "buildProtocols",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "生成接口定义",
+      "detail": "node buildProtocols"
+    },
+    {
+      "type": "npm",
+      "script": "start_game",
+      "problemMatcher": [],
+      "label": "启动游戏",
+      "detail": "cd game&node start",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     }
   ]
 }
