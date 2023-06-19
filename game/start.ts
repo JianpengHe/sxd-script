@@ -7,6 +7,7 @@ import * as fs from "fs";
 import * as http from "http";
 import * as path from "path";
 import * as child_process from "child_process";
+import { updateMainSwf } from "../updateMainSwf";
 
 const PATH = path.resolve(__dirname, "Chrome");
 /** 暂时不支持超过32767的端口 */
@@ -53,6 +54,7 @@ const hasFile = (path: string) =>
       /** 获取页面 */
       let page = await getWebGameReqBody();
       const param = await getWebGameParam(page);
+      updateMainSwf(param as any);
 
       socketAggregation.add(param.hash_code, { remark: "town", host: param.ip, port: Number(param.port) });
 
