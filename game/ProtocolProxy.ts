@@ -6,10 +6,14 @@ import * as net from "net";
 import { Log } from "./Log";
 import { Readline } from "./Readline";
 
+/** 只显示某个mod */
+let filterMod = -1;
 /** 记录每个mod+fun对应的服务器sock */
 const funConn: Map<IFunKey, net.Socket> = new Map();
 const log = new Log();
-new Readline(funConn).onCustomData(log.up.bind(log));
+new Readline(funConn).onCustomData(log.up.bind(log)).onFilterMod(modId => {
+  filterMod = modId;
+});
 
 /** 自动找到服务器，自动走代理 */
 const isAutoProxyServer = true;
@@ -73,18 +77,21 @@ export class ProtocolProxy {
     new ProtocolParse(this.localSock).onData(async ({ headBuffer, dataBuffer, buffer, modId, funId }) => {
       const { Mname, Mfn, name, fn, req } = await getModJson(modId, funId);
       const protocolData = readProtocolBuffer(buffer, req);
-      console.log(
-        consoleLogColor(this, true),
-        "\t",
-        ...consoleLogText(modId, 3),
-        ...consoleLogText(Mfn, 16),
-        ...consoleLogText(Mname, 16),
-        "\t",
-        ...consoleLogText(funId, 3),
-        ...consoleLogText(fn, 24),
-        name,
-        protocolData
-      );
+      if (filterMod < 0 || filterMod === modId) {
+        console.log(
+          consoleLogColor(this, true),
+          "\t",
+          ...consoleLogText(modId, 3),
+          ...consoleLogText(Mfn, 16),
+          ...consoleLogText(Mname, 16),
+          "\t",
+          ...consoleLogText(funId, 3),
+          ...consoleLogText(fn, 24),
+          name,
+          protocolData
+        );
+      }
+
       log.up(info.remark, protocolData, modId, funId);
       this.remoteSock.write(Buffer.concat([headBuffer, dataBuffer]));
 
@@ -95,18 +102,21 @@ export class ProtocolProxy {
     new ProtocolParse(this.remoteSock).onData(async ({ headBuffer, dataBuffer, buffer, modId, funId }) => {
       const { Mname, Mfn, name, fn, res } = await getModJson(modId, funId);
       const protocolData = readProtocolBuffer(buffer, res);
-      console.log(
-        consoleLogColor(this, false),
-        "\t",
-        ...consoleLogText(modId, 3),
-        ...consoleLogText(Mfn, 16),
-        ...consoleLogText(Mname, 16),
-        "\t",
-        ...consoleLogText(funId, 3),
-        ...consoleLogText(fn, 24),
-        name,
-        buffer.length
-      );
+      if (filterMod < 0 || filterMod === modId) {
+        console.log(
+          consoleLogColor(this, false),
+          "\t",
+          ...consoleLogText(modId, 3),
+          ...consoleLogText(Mfn, 16),
+          ...consoleLogText(Mname, 16),
+          "\t",
+          ...consoleLogText(funId, 3),
+          ...consoleLogText(fn, 24),
+          name,
+          filterMod === modId ? protocolData : buffer.length
+        );
+      }
+
       log.down(info.remark, protocolData, modId, funId);
 
       if (isAutoProxyServer) {

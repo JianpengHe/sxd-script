@@ -14,6 +14,12 @@ export class Readline {
   };
   private onCustomDataCallBack: (remark: string, req: IProtocolData, modId: number, funId: number) => void = () => {};
 
+  public onFilterMod = (onFilterModCallBack: Readline["onFilterModCallBack"]) => {
+    this.onFilterModCallBack = onFilterModCallBack;
+    return this;
+  };
+  private onFilterModCallBack: (modId: number) => void = () => {};
+
   constructor(funConn: Readline["funConn"], input = process.stdin, output = process.stdout) {
     this.funConn = funConn;
     this.rl = readline.createInterface({ input, output });
@@ -37,6 +43,7 @@ export class Readline {
 
       if (!modId) {
         console.log("操作终止");
+        this.onFilterModCallBack(-1);
         clearTimeout(this.cyclicActionTimer);
         continue;
       }
@@ -49,6 +56,7 @@ export class Readline {
 
       if (!funId) {
         /** 只显示某modId的记录 */
+        this.onFilterModCallBack(Number(modId));
         console.log("只显示", modId, M.name, M.fn, "的记录，按回车退出");
         continue;
       }
