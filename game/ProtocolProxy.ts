@@ -1,11 +1,15 @@
 import { ISocketAggregationInfo, SocketAggregation } from "./SocketAggregation";
 import { ProtocolParse } from "./ProtocolParse";
-import { getModJson, readProtocolBuffer, writeProtocolBuffer } from "../utils";
+import { IFunKey, getFunKey, getModJson, readProtocolBuffer, writeProtocolBuffer } from "../utils";
 
 import * as net from "net";
 import { Log } from "./Log";
+import { Readline } from "./Readline";
 
+/** 记录每个mod+fun对应的服务器sock */
+const funConn: Map<IFunKey, net.Socket> = new Map();
 const log = new Log();
+new Readline(funConn).onCustomData(log.up.bind(log));
 
 /** 自动找到服务器，自动走代理 */
 const isAutoProxyServer = true;
@@ -83,6 +87,9 @@ export class ProtocolProxy {
       );
       log.up(info.remark, protocolData, modId, funId);
       this.remoteSock.write(Buffer.concat([headBuffer, dataBuffer]));
+
+      /** 记录 */
+      funConn.set(getFunKey(modId, funId), this.remoteSock);
     });
 
     new ProtocolParse(this.remoteSock).onData(async ({ headBuffer, dataBuffer, buffer, modId, funId }) => {
@@ -137,16 +144,8 @@ export class ProtocolProxy {
         if (host && port && hash) {
           console.log("找到新服务器", Mfn, host, port);
           this.socketAggregation.add(hash, { host, port, remark: Mfn });
-          const newDataBuffer = writeProtocolBuffer(protocolData, res);
-          const newHeadBuffer = Buffer.alloc(8);
-          /** dataLen */
-          newHeadBuffer.writeUInt32BE(newDataBuffer.length + 4);
-          /** modId */
-          newHeadBuffer.writeUInt16BE(modId, 4);
-          /** funId */
-          newHeadBuffer.writeUInt16BE(funId, 6);
-
-          this.localSock.write(Buffer.concat([newHeadBuffer, newDataBuffer]));
+          const newBuffer = writeProtocolBuffer(protocolData, res, modId, funId);
+          this.localSock.write(newBuffer);
           return;
         }
       }

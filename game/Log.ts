@@ -42,7 +42,12 @@ export class Log {
       if (fileCount > 20) {
         // TODO
       }
-      await fs.promises.writeFile(`${path}/${hex}.json`, JSON.stringify(log, null, 2));
+
+      /** 不记录空服务器名 */
+      if (log.remark) {
+        await fs.promises.writeFile(`${path}/${hex}.json`, JSON.stringify(log, null, 2));
+      }
+
       this.dirFilesCount.set(path, fileCount + 1);
       this.logMap.delete(hex);
     }
